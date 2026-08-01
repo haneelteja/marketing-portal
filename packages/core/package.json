@@ -1,0 +1,17 @@
+{
+  "name": "@platform/core",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./providers/generation/*": "./src/providers/generation/*.ts",
+    "./providers/publishing/*": "./src/providers/publishing/*.ts",
+    "./prompt/*": "./src/prompt/*.ts",
+    "./quota/*": "./src/quota/*.ts",
+    "./queue/*": "./src/queue/*.ts",
+    "./crypto/*": "./src/crypto/*.ts",
+    "./email/sender": "./src/email/sender.ts",
+    "./email/templates": "./src/email/templates.ts"
+  },
+  "dependencies": { "pg": "^8.12.0" },
+  "devDependencies": { "@types/pg": "^8.11.0", "typescript": "^5.5.0" }
+}

@@ -1,0 +1,23 @@
+{
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@platform/web",
+  "outputDirectory": ".next",
+  "functions": {
+    "src/app/api/generation/route.ts": { "maxDuration": 10 },
+    "src/app/api/jobs/[id]/route.ts": { "maxDuration": 10 },
+    "src/app/api/social/callback/[platform]/route.ts": { "maxDuration": 15 },
+    "src/app/api/analytics/export/route.ts": { "maxDuration": 30 },
+    "src/app/api/billing/webhook/route.ts": { "maxDuration": 10 }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Overridden per-tenant at runtime by the theme engine (inline on <html>). */
+  --brand-primary: #1B2A41;
+  --brand-secondary: #3E5C76;
+  --brand-accent: #C48A2D;
+  --brand-surface: #F7F6F2;
+  --brand-ink: #16181D;
+  --brand-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
