@@ -27,9 +27,10 @@ export default function LoginPage() {
     if (claims.platform_role) {
       window.location.href = '/platform';
     } else if (claims.client_id) {
-      window.location.href = '/';
+      window.location.href = `/app/${claims.client_slug ?? ''}`;
     } else {
-      window.location.href = '/';
+      setError('Your account is not yet assigned to a workspace. Ask your platform admin to add you.');
+      setLoading(false);
     }
   }
 
