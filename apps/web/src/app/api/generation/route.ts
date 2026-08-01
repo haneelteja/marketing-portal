@@ -10,13 +10,26 @@ import { QUEUES, GenerateJobPayload } from '@platform/core/queue/contracts';
 const RESERVE_UNITS = { text: 2, image: 3, video: 25, audio: 2 } as const;
 type Capability = keyof typeof RESERVE_UNITS;
 
+export const dynamic = 'force-dynamic';
+
 // SERVICE-ROLE JUSTIFICATION: quota ledger + queue enqueue are worker-plane writes
 // (tenants are read-only on quota_ledger by design). Tenant identity comes from the
 // verified JWT, and the content row the job references is created below through the
 // caller's own RLS-scoped client — so no cross-tenant write is possible here.
-const servicePool = new Pool({ connectionString: process.env.DATABASE_URL_SERVICE });
-const quota = new QuotaService(servicePool);
-const bossPromise = new PgBoss(process.env.DATABASE_URL_SERVICE!).start();
+let _servicePool: Pool | null = null;
+let _bossPromise: Promise<PgBoss> | null = null;
+
+function getServicePool(): Pool {
+  if (!_servicePool) _servicePool = new Pool({ connectionString: process.env.DATABASE_URL_SERVICE });
+  return _servicePool;
+}
+function getBoss(): Promise<PgBoss> {
+  if (!_bossPromise) {
+    const boss = new PgBoss(process.env.DATABASE_URL_SERVICE!);
+    _bossPromise = boss.start().then(() => boss);
+  }
+  return _bossPromise;
+}
 
 /**
  * POST /api/generation — spec §8.4: creates a queued job and returns immediately
@@ -81,6 +94,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Could not create job.' }, { status: 400 });
   }
 
+  const quota = new QuotaService(getServicePool());
   let ledgerEntryId: string;
   try {
     ledgerEntryId = await quota.checkAndReserve(clientId, jobRow.id, RESERVE_UNITS[capability]);
@@ -93,7 +107,7 @@ export async function POST(req: NextRequest) {
     throw e;
   }
 
-  const boss = await bossPromise;
+  const boss = await getBoss();
   const payload: GenerateJobPayload = {
     jobId: jobRow.id, clientId, capability, vendor, model,
     reservedUnits: RESERVE_UNITS[capability], ledgerEntryId,
