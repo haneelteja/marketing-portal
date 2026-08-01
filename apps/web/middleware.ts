@@ -58,7 +58,7 @@ export async function middleware(req: NextRequest) {
   return res;
 }
 
-export const config = { matcher: ['/((?!_next/|favicon.ico|api/health).*)'] };
+export const config = { matcher: ['/((?!_next/|favicon.ico|api/health|auth/callback).*)'] };
 
 // -- helpers (edge-safe; cached KV lookup in production) ----------------------
 async function lookupTenant(
