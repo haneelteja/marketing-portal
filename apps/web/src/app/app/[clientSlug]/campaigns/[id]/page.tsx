@@ -1,14 +1,9 @@
 import { redirect } from 'next/navigation';
-import nextDynamic from 'next/dynamic';
 import { getSession } from '@/lib/session/getSession';
 import { rlsClient } from '@/lib/db/clients';
+import { ConceptComments } from '@/components/ConceptComments';
 import { AddConceptButton } from './AddConceptButton';
 import { ApproveButton } from './ApproveButton';
-
-const ConceptComments = nextDynamic(
-  () => import('@/components/ConceptComments').then((m) => m.ConceptComments),
-  { ssr: false },
-);
 
 export const dynamic = 'force-dynamic';
 
