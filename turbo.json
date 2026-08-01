@@ -3,7 +3,20 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "DATABASE_URL_SERVICE",
+        "TOKEN_VAULT_KEY",
+        "INTERNAL_API_KEY",
+        "INTERNAL_API_URL",
+        "ANTHROPIC_API_KEY",
+        "RESEND_API_KEY",
+        "SENTRY_DSN",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "SENTRY_AUTH_TOKEN"
+      ]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],
