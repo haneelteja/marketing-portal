@@ -1,4 +1,5 @@
 import './sentry';
+import { createServer } from 'http';
 import PgBoss from 'pg-boss';
 import { Pool } from 'pg';
 import { QUEUES, PublishJobPayload } from '@platform/core/queue/contracts';
@@ -212,5 +213,12 @@ export async function start(): Promise<void> {
 }
 
 if (require.main === module) {
+  // Health-check server — keeps Render free-tier web service alive
+  const port = parseInt(process.env.PORT ?? '3002', 10);
+  createServer((_, res) => {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ service: 'publisher', status: 'ok' }));
+  }).listen(port, () => console.log(`[publisher] health on :${port}`));
+
   start().catch((e) => { console.error(e); process.exit(1); });
 }

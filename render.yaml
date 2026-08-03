@@ -1,14 +1,17 @@
 services:
-  - type: worker
+  - type: web
     name: platform-orchestrator
     runtime: node
-    plan: starter
+    plan: free
     rootDir: .
     buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile
     startCommand: pnpm --filter @platform/orchestrator start
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 3001
       - key: DATABASE_URL_SERVICE
         sync: false
       - key: OPENROUTER_API_KEY
@@ -36,20 +39,19 @@ services:
       - key: SENTRY_DSN
         sync: false
 
-  - type: worker
+  - type: web
     name: platform-publisher
     runtime: node
-    plan: starter
+    plan: free
     rootDir: .
     buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile
     startCommand: pnpm --filter @platform/publisher start
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL_SERVICE
-        sync: false
-      - key: OPENROUTER_API_KEY
-        sync: false
+      - key: PORT
+        value: 3002
       - key: META_APP_ID
         sync: false
       - key: META_APP_SECRET
@@ -62,7 +64,11 @@ services:
         sync: false
       - key: YOUTUBE_CLIENT_SECRET
         sync: false
+      - key: DATABASE_URL_SERVICE
+        sync: false
       - key: ENCRYPTION_KEY
+        sync: false
+      - key: RESEND_API_KEY
         sync: false
       - key: SENTRY_DSN
         sync: false
