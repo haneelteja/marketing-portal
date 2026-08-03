@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { jwtVerify, createRemoteJWKSet } from 'jose';
+import { createServerClient } from '@supabase/ssr';
 
 export interface SessionClaims {
   sub: string;
@@ -11,17 +12,34 @@ export interface SessionClaims {
   impersonation_expires_at?: string;
 }
 
-const jwks = createRemoteJWKSet(
-  new URL(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/.well-known/jwks.json`),
-);
+let _jwks: ReturnType<typeof createRemoteJWKSet> | undefined;
+function getJwks() {
+  if (!_jwks) {
+    _jwks = createRemoteJWKSet(
+      new URL(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/.well-known/jwks.json`),
+    );
+  }
+  return _jwks;
+}
 
 /** Verified session claims for server components / route handlers. Null if unauthenticated. */
 export async function getSession(): Promise<{ claims: SessionClaims; accessToken: string } | null> {
-  const token = (await cookies()).get('sb-access-token')?.value;
-  if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, jwks);
-    return { claims: payload as unknown as SessionClaims, accessToken: token };
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll(); },
+          setAll() {},
+        },
+      },
+    );
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return null;
+    const { payload } = await jwtVerify(session.access_token, getJwks());
+    return { claims: payload as unknown as SessionClaims, accessToken: session.access_token };
   } catch {
     return null;
   }
