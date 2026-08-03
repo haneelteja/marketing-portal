@@ -4,14 +4,29 @@
 
 :root {
   /* Overridden per-tenant at runtime by the theme engine (inline on <html>). */
-  --brand-primary: #1B2A41;
-  --brand-secondary: #3E5C76;
-  --brand-accent: #C48A2D;
-  --brand-surface: #F7F6F2;
-  --brand-ink: #16181D;
-  --brand-radius: 10px;
+  --brand-primary:      #1B2A41;
+  --brand-secondary:    #2A4166;
+  --brand-accent:       #00C4A0;
+  --brand-accent-muted: rgba(0, 196, 160, 0.1);
+  --brand-surface:      #F8FAFC;
+  --brand-ink:          #0D1B2A;
+  --brand-muted:        #64748B;
+  --brand-border:       #E2E8F0;
+  --brand-radius:       8px;
+  --brand-sidebar:      #0D1B2A;
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
