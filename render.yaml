@@ -1,0 +1,70 @@
+services:
+  - type: worker
+    name: platform-orchestrator
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @platform/orchestrator start
+    healthCheckPath: null
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL_SERVICE
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_AI_API_KEY
+        sync: false
+      - key: STABILITY_API_KEY
+        sync: false
+      - key: IDEOGRAM_API_KEY
+        sync: false
+      - key: RUNWAY_API_KEY
+        sync: false
+      - key: LUMA_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+  - type: worker
+    name: platform-publisher
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @platform/publisher start
+    healthCheckPath: null
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL_SERVICE
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: META_APP_ID
+        sync: false
+      - key: META_APP_SECRET
+        sync: false
+      - key: LINKEDIN_CLIENT_ID
+        sync: false
+      - key: LINKEDIN_CLIENT_SECRET
+        sync: false
+      - key: YOUTUBE_CLIENT_ID
+        sync: false
+      - key: YOUTUBE_CLIENT_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false

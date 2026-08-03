@@ -10,6 +10,7 @@ const NAV = [
   { href: '/platform/quotas',      label: 'Quota usage'       },
   { href: '/platform/editions',    label: 'Editions'          },
   { href: '/platform/audit',       label: 'Audit log'         },
+  { href: '/platform/settings',    label: 'Settings'          },
 ];
 
 export default async function PlatformLayout({ children }: { children: ReactNode }) {

@@ -9,6 +9,7 @@ import { IdeogramProvider } from './ideogram';
 import { LumaProvider } from './luma';
 import { ElevenLabsProvider } from './elevenlabs';
 import { OpenAITTSProvider } from './openai-tts';
+import { OpenRouterProvider, OPENROUTER_FREE_MODELS, OPENROUTER_PAID_MODELS } from './openrouter';
 
 // All concrete provider instances. One instance per vendor class.
 const ALL_PROVIDERS: GenerationProvider[] = [
@@ -21,6 +22,7 @@ const ALL_PROVIDERS: GenerationProvider[] = [
   new LumaProvider(),
   new ElevenLabsProvider(),
   new OpenAITTSProvider(),
+  new OpenRouterProvider(),
 ];
 
 /** Which env vars are needed per vendor. */
@@ -34,6 +36,30 @@ const VENDOR_ENV: Record<string, string[]> = {
   runway:       ['RUNWAY_API_KEY'],
   luma:         ['LUMA_API_KEY'],
   elevenlabs:   ['ELEVENLABS_API_KEY'],
+  openrouter:   ['OPENROUTER_API_KEY'],
+};
+
+/**
+ * Named task types that can be assigned different LLM models in platform settings.
+ * Stored as keys in platform_settings.llm_task_routing (JSON column).
+ */
+export type LlmTask = 'strategy' | 'concept' | 'caption' | 'audience' | 'lead_scout';
+
+export const LLM_TASK_LABELS: Record<LlmTask, string> = {
+  strategy:   'Marketing strategy',
+  concept:    'Content concepts',
+  caption:    'Captions & hashtags',
+  audience:   'Audience analysis',
+  lead_scout: 'B2B lead scouting',
+};
+
+/** Default task → model mapping. Free models first for zero-config bootstrapping. */
+export const DEFAULT_TASK_ROUTING: Record<LlmTask, { vendor: string; model: string }> = {
+  strategy:   { vendor: 'openrouter', model: 'meta-llama/llama-3.3-70b-instruct:free' },
+  concept:    { vendor: 'openrouter', model: 'meta-llama/llama-3.3-70b-instruct:free' },
+  caption:    { vendor: 'openrouter', model: 'google/gemma-3-27b-it:free' },
+  audience:   { vendor: 'openrouter', model: 'qwen/qwen-2.5-72b-instruct:free' },
+  lead_scout: { vendor: 'openrouter', model: 'mistralai/mistral-7b-instruct:free' },
 };
 
 function isVendorConfigured(vendor: string): boolean {
@@ -118,6 +144,22 @@ export function getProviderCatalog(): ModelDescriptor[] {
     { vendor: 'openai-tts', vendorLabel: 'OpenAI', capability: 'audio', model: 'tts-1',
       label: 'TTS-1', description: 'OpenAI standard TTS. Faster and cheaper for voiceover prototyping.',
       costUnitsPerCall: 1, configured: isVendorConfigured('openai-tts') },
+
+    // ── OPENROUTER (FREE) ─────────────────────────────────────────────────────
+    ...OPENROUTER_FREE_MODELS.map(m => ({
+      vendor: 'openrouter', vendorLabel: 'OpenRouter (Free)', capability: 'text' as const, model: m,
+      label: m.split('/')[1]?.replace(/:free$/, '') ?? m,
+      description: 'Free model via OpenRouter. No usage costs — ideal for high-volume tasks.',
+      costUnitsPerCall: 0, configured: isVendorConfigured('openrouter'),
+    })),
+
+    // ── OPENROUTER (PAID) ─────────────────────────────────────────────────────
+    ...OPENROUTER_PAID_MODELS.map(m => ({
+      vendor: 'openrouter', vendorLabel: 'OpenRouter', capability: 'text' as const, model: m,
+      label: m.split('/')[1] ?? m,
+      description: 'Paid model via OpenRouter. One OPENROUTER_API_KEY, billed per-token.',
+      costUnitsPerCall: 2, configured: isVendorConfigured('openrouter'),
+    })),
   ];
 }
 
@@ -143,4 +185,18 @@ export function resolveProvider(
     );
   }
   return configured;
+}
+
+/**
+ * Resolve a provider + model for a named task using the platform's task routing config.
+ * `taskRouting` comes from `platform_settings.llm_task_routing` (nullable).
+ * Falls back to DEFAULT_TASK_ROUTING when unset.
+ */
+export function resolveTaskProvider(
+  task: LlmTask,
+  taskRouting?: Record<string, { vendor: string; model: string }> | null,
+): { provider: GenerationProvider; model: string } {
+  const route = taskRouting?.[task] ?? DEFAULT_TASK_ROUTING[task];
+  const provider = resolveProvider('text', route.vendor, route.model);
+  return { provider, model: route.model };
 }
