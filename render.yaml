@@ -6,7 +6,6 @@ services:
     rootDir: .
     buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile
     startCommand: pnpm --filter @platform/orchestrator start
-    healthCheckPath: null
     envVars:
       - key: NODE_ENV
         value: production
@@ -44,7 +43,6 @@ services:
     rootDir: .
     buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile
     startCommand: pnpm --filter @platform/publisher start
-    healthCheckPath: null
     envVars:
       - key: NODE_ENV
         value: production
