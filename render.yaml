@@ -4,14 +4,12 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile
-    startCommand: pnpm --filter @platform/orchestrator start
+    buildCommand: npx pnpm@9 install --frozen-lockfile
+    startCommand: npx pnpm@9 --filter @platform/orchestrator start
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3001
       - key: DATABASE_URL_SERVICE
         sync: false
       - key: OPENROUTER_API_KEY
@@ -44,14 +42,16 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile
-    startCommand: pnpm --filter @platform/publisher start
+    buildCommand: npx pnpm@9 install --frozen-lockfile
+    startCommand: npx pnpm@9 --filter @platform/publisher start
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3002
+      - key: DATABASE_URL_SERVICE
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
       - key: META_APP_ID
         sync: false
       - key: META_APP_SECRET
@@ -63,8 +63,6 @@ services:
       - key: YOUTUBE_CLIENT_ID
         sync: false
       - key: YOUTUBE_CLIENT_SECRET
-        sync: false
-      - key: DATABASE_URL_SERVICE
         sync: false
       - key: ENCRYPTION_KEY
         sync: false
