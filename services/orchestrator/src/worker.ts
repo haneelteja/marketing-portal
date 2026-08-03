@@ -144,12 +144,18 @@ export async function start(): Promise<void> {
 }
 
 if (require.main === module) {
-  // Health-check server — keeps Render free-tier web service alive
-  const port = parseInt(process.env.PORT ?? '3001', 10);
+  // Health server starts first so Render's health check passes while pg-boss connects
+  const port = parseInt(process.env.PORT ?? '10000', 10);
   createServer((_, res) => {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ service: 'orchestrator', status: 'ok' }));
-  }).listen(port, () => console.log(`[orchestrator] health on :${port}`));
-
-  start().catch((e) => { console.error(e); process.exit(1); });
+  }).listen(port, () => {
+    console.log(`[orchestrator] health on :${port}`);
+    // Start worker after health server is bound
+    if (!process.env.DATABASE_URL_SERVICE) {
+      console.warn('[orchestrator] DATABASE_URL_SERVICE not set — skipping pg-boss start');
+      return;
+    }
+    start().catch((e) => { console.error('[orchestrator] fatal:', e); });
+  });
 }
