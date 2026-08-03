@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
-/**
- * Edge middleware (spec §2.2, §7):
- *  1. Resolve host -> tenant: {slug}.PLATFORM_HOST or a registered custom domain (CNAME).
- *  2. Gate /platform/* to platform roles, /app/{slug}/* to that tenant's users.
- *  3. Inject x-tenant-id / x-theme-version headers so the root layout can load the
- *     theme server-side before first paint — no flash of wrong brand.
- */
 const PLATFORM_HOST = process.env.NEXT_PUBLIC_PLATFORM_HOST ?? 'yourplatform.com';
 
 export async function middleware(req: NextRequest) {
@@ -76,11 +70,20 @@ async function readSessionClaims(req: NextRequest): Promise<{
   sub: string; platform_role?: string; client_id?: string;
   client_role?: string; impersonating?: boolean;
 } | null> {
-  const token = req.cookies.get('sb-access-token')?.value;
-  if (!token) return null;
   try {
-    // Signature verified against JWKS in production (jose.jwtVerify); payload shape only here.
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return req.cookies.getAll(); },
+          setAll() {},
+        },
+      },
+    );
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return null;
+    const payload = JSON.parse(Buffer.from(session.access_token.split('.')[1], 'base64url').toString());
     return payload;
   } catch { return null; }
 }
