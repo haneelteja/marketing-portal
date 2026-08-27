@@ -204,7 +204,7 @@ export async function start(): Promise<void> {
           await db.query(
             `insert into analytics_snapshots (client_id, scheduled_post_id, platform, metric_type, value)
              values ($1,$2,$3,$4,$5)
-             on conflict (scheduled_post_id, metric_type, (created_at::date))
+             on conflict (scheduled_post_id, metric_type, (captured_at::date))
              do update set value = excluded.value`,
             [post.client_id, post.id, post.p, m.metricType, m.value]);
         }
