@@ -40,7 +40,7 @@ alter table impersonation_sessions
 -- ── 3. Analytics snapshot deduplication constraint ────────────────────────────
 -- Prevent duplicate rows from repeated analytics pulls on the same post/metric/day.
 create unique index if not exists analytics_snapshots_dedup
-  on analytics_snapshots (scheduled_post_id, metric_type, date_trunc('day', captured_at));
+  on analytics_snapshots (scheduled_post_id, metric_type);
 
 -- ── 4. Supabase Storage bucket DDL note ───────────────────────────────────────
 -- The 'generated-assets' bucket must be created via Supabase Dashboard:
