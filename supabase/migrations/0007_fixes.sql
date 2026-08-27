@@ -21,7 +21,7 @@ as $$
     (select id from public.users where auth_id = auth.uid()),
     p_action,
     p_target_type,
-    p_target_id,
+    p_target_id::uuid,
     p_diff
   );
 $$;
