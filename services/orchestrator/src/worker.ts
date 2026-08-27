@@ -88,8 +88,8 @@ export async function start(): Promise<void> {
 
         const { rows: [asset] } = await db.query(
           `insert into concept_assets (concept_id, client_id, type, provider, prompt_used,
-                                       source_url, raw_output, created_by, version)
-           values ($1,$2,'image',$3,$4,$5,$6::jsonb,$7,
+                                       source_url, raw_output, created_by, creation_method, version)
+           values ($1,$2,'image',$3,$4,$5,$6::jsonb,$7,'ai_generated',
                    coalesce((select max(version)+1 from concept_assets
                              where concept_id=$1 and type='image'), 1))
            returning id`,
@@ -108,8 +108,8 @@ export async function start(): Promise<void> {
         actualUnits = result.costUnits;
         const { rows: [asset] } = await db.query(
           `insert into concept_assets (concept_id, client_id, type, provider, prompt_used,
-                                       source_url, raw_output, created_by, version)
-           values ($1,$2,'video',$3,$4,$5,$6::jsonb,$7,
+                                       source_url, raw_output, created_by, creation_method, version)
+           values ($1,$2,'video',$3,$4,$5,$6::jsonb,$7,'ai_generated',
                    coalesce((select max(version)+1 from concept_assets
                              where concept_id=$1 and type='video'), 1))
            returning id`,
@@ -139,8 +139,8 @@ export async function start(): Promise<void> {
 
         const { rows: [asset] } = await db.query(
           `insert into concept_assets (concept_id, client_id, type, provider, prompt_used,
-                                       source_url, raw_output, created_by, version)
-           values ($1,$2,'audio',$3,$4,$5,$6::jsonb,$7,
+                                       source_url, raw_output, created_by, creation_method, version)
+           values ($1,$2,'audio',$3,$4,$5,$6::jsonb,$7,'ai_generated',
                    coalesce((select max(version)+1 from concept_assets
                              where concept_id=$1 and type='audio'), 1))
            returning id`,

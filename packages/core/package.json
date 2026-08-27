@@ -10,6 +10,7 @@
     "./queue/*": "./src/queue/*.ts",
     "./crypto/*": "./src/crypto/*.ts",
     "./storage/*": "./src/storage/*.ts",
+    "./platforms/*": "./src/platforms/*.ts",
     "./email/sender": "./src/email/sender.ts",
     "./email/templates": "./src/email/templates.ts"
   },
