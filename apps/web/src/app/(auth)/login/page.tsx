@@ -27,7 +27,16 @@ export default function LoginPage() {
     if (claims.platform_role) {
       window.location.href = '/platform';
     } else if (claims.client_id) {
-      window.location.href = `/app/${claims.client_slug ?? ''}`;
+      // Resolve client slug from server — slug is not in the JWT
+      const me = await fetch('/api/internal/me', {
+        headers: { authorization: `Bearer ${data.session.access_token}` },
+      }).then(r => r.json()) as { slug?: string; error?: string };
+      if (me.slug) {
+        window.location.href = `/app/${me.slug}`;
+      } else {
+        setError('Could not resolve your workspace. Please contact your admin.');
+        setLoading(false);
+      }
     } else {
       setError('Your account is not yet assigned to a workspace. Ask your platform admin to add you.');
       setLoading(false);

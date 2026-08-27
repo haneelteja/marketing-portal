@@ -10,8 +10,19 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Required — get from Supabase → Settings → Database → Connection string
       - key: DATABASE_URL_SERVICE
         sync: false
+      # Required — 32-byte base64 key for token encryption
+      # Generate: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+      - key: TOKEN_VAULT_KEY
+        sync: false
+      # Required for Supabase Storage uploads (generated-assets bucket)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # AI providers — add as you activate each one
       - key: OPENROUTER_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
@@ -29,8 +40,6 @@ services:
       - key: LUMA_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
-        sync: false
-      - key: ENCRYPTION_KEY
         sync: false
       - key: RESEND_API_KEY
         sync: false
@@ -50,8 +59,10 @@ services:
         value: production
       - key: DATABASE_URL_SERVICE
         sync: false
-      - key: OPENROUTER_API_KEY
+      # Must match TOKEN_VAULT_KEY in orchestrator — same key, both services
+      - key: TOKEN_VAULT_KEY
         sync: false
+      # Social platform OAuth app credentials
       - key: META_APP_ID
         sync: false
       - key: META_APP_SECRET
@@ -63,8 +74,6 @@ services:
       - key: YOUTUBE_CLIENT_ID
         sync: false
       - key: YOUTUBE_CLIENT_SECRET
-        sync: false
-      - key: ENCRYPTION_KEY
         sync: false
       - key: RESEND_API_KEY
         sync: false

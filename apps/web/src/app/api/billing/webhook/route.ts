@@ -77,13 +77,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const quotaUnits = Number(meta?.['quota_units'] ?? 0);
       if (!clientId || !quotaUnits) break;
 
+      // Resolve edition_id first, then update quota
+      const { data: clientRow } = await db
+        .from('clients')
+        .select('edition_id')
+        .eq('id', clientId)
+        .single();
+
+      const editionId = clientRow?.edition_id;
+      if (!editionId) break;
+
       const { error } = await db
         .from('client_editions')
         .update({ ai_generation_quota: quotaUnits })
-        .eq('id',
-          // Resolve edition_id from client
-          db.from('clients').select('edition_id').eq('id', clientId).single() as unknown as string,
-        );
+        .eq('id', editionId);
       if (!error) {
         await audit(db, 'billing.quota_renewed', { type: 'client', id: clientId }, { quotaUnits, event: event.type });
       }

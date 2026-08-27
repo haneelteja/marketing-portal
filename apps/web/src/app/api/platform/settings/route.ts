@@ -5,7 +5,7 @@ import { platformClient } from '@/lib/db/clients';
 /** GET /api/platform/settings — returns platform settings (platform admin only) */
 export async function GET() {
   const session = await getSession();
-  if (!session?.claims.platform_role)
+  if (session?.claims.platform_role !== 'platform_admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const db = platformClient(session.accessToken);
@@ -27,7 +27,7 @@ interface SettingsPatch {
 /** PATCH /api/platform/settings — partial update (platform admin only) */
 export async function PATCH(req: NextRequest) {
   const session = await getSession();
-  if (!session?.claims.platform_role)
+  if (session?.claims.platform_role !== 'platform_admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json() as SettingsPatch;

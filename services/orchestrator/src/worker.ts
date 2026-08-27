@@ -6,6 +6,7 @@ import { QUEUES, GenerateJobPayload } from '@platform/core/queue/contracts';
 import { resolveProvider } from '@platform/core/providers/generation/registry';
 import { PromptContextBuilder } from '@platform/core/prompt/PromptContextBuilder';
 import { QuotaService } from '@platform/core/quota/QuotaService';
+import { uploadBase64Asset } from '@platform/core/storage/upload';
 
 /**
  * Generation worker (spec §8.4): consumes queued jobs, calls providers, updates
@@ -75,7 +76,16 @@ export async function start(): Promise<void> {
           options: jobRow.request_input.options,
         });
         actualUnits = result.costUnits;
-        const url = result.images[0].url;
+
+        // Upload binary assets that providers couldn't return as direct URLs
+        let url = result.images[0].url;
+        if (url.startsWith('storage://')) {
+          const raw = result.rawOutput as Record<string, unknown>;
+          const b64 = (raw.imageBase64 ?? (raw.data as Array<{b64_json?: string}>)?.[0]?.b64_json) as string | undefined;
+          if (!b64) throw new Error(`Provider ${p.vendor} returned a storage:// placeholder but no base64 data in rawOutput`);
+          url = await uploadBase64Asset(b64, 'image/png', `${p.jobId}.png`);
+        }
+
         const { rows: [asset] } = await db.query(
           `insert into concept_assets (concept_id, client_id, type, provider, prompt_used,
                                        source_url, raw_output, created_by, version)
@@ -116,6 +126,17 @@ export async function start(): Promise<void> {
           options: jobRow.request_input.options,
         });
         actualUnits = result.costUnits;
+
+        // Upload audio binary (ElevenLabs, OpenAI TTS) — providers store base64 in rawOutput
+        let audioUrl = result.audioUrl;
+        if (audioUrl.startsWith('storage://')) {
+          const raw = result.rawOutput as Record<string, unknown>;
+          const b64 = raw.audioBase64 as string | undefined;
+          if (!b64) throw new Error(`Provider ${p.vendor} returned a storage:// placeholder but no audioBase64 in rawOutput`);
+          const ext = result.mimeType.split('/')[1] ?? 'mp3';
+          audioUrl = await uploadBase64Asset(b64, result.mimeType, `${p.jobId}.${ext}`);
+        }
+
         const { rows: [asset] } = await db.query(
           `insert into concept_assets (concept_id, client_id, type, provider, prompt_used,
                                        source_url, raw_output, created_by, version)
@@ -124,7 +145,7 @@ export async function start(): Promise<void> {
                              where concept_id=$1 and type='audio'), 1))
            returning id`,
           [jobRow.concept_id, p.clientId, result.provider, prompt,
-           result.audioUrl, JSON.stringify(result.rawOutput), jobRow.requested_by]);
+           audioUrl, JSON.stringify(result.rawOutput), jobRow.requested_by]);
         await db.query(
           `update generation_jobs set result_asset_id=$2 where id=$1`, [p.jobId, asset.id]);
       }
